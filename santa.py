@@ -50,50 +50,23 @@ def bb_sort(ll):
     return ll[1:-1]
 
 
-def optimizetrips(trip1, trip2, trip3):
-    # s_limit = 7000
-    # optimal = False
+def optimizetrips(trip1):
 
-    # bb_sort(trip1)
-    # bb_sort(trip2)
-    # bb_sort(trip3)
-    # trip1 = [[0, north_pole, 10]] + trip1 + [[0, north_pole, 10]]
-    # trip2 = [[0, north_pole, 10]] + trip2 + [[0, north_pole, 10]]
-    # trip3 = [[0, north_pole, 10]] + trip3 + [[0, north_pole, 10]]
+    bb_sort(trip1)
 
-    # pathlength(trip1 + trip2 + trip3)
-    # pathlength(trip1 + trip3 + trip2)
-    # pathlength(trip2 + trip1 + trip3)
-    # pathlength(trip2 + trip3 + trip1)
-    # pathlength(trip3 + trip1 + trip2)
-    # pathlength(trip3 + trip2 + trip3)
+    bestTrip = trip1[:]
+    for i in range(1000):
+        r11 = random.randint(0, len(trip1)-1)
+        r12 = random.randint(0, len(trip1)-1)
+        #
+        temp1 = trip1[r11]
+        trip1[r11] = trip1[r12]
+        trip1[r12] = temp1
 
-    giftPosition1 = random.randint(1, len(trip1))
-    giftPosition2 = random.randint(1, len(trip2))
-    giftPosition3 = random.randint(1, len(trip3))
+        if pathlength(trip1) < pathlength(bestTrip):
+            bestTrip = trip1[:]
 
-    gift1 = trip1[giftPosition1]
-    gift2 = trip2[giftPosition2]
-    gift3 = trip3[giftPosition3]
-
-    test1 = trip1.Weight.sum()
-    print(test1)
-    r1 = random.randint(1, len(trip1))
-    r2 = random.randint(1, len(trip2))
-    r3 = random.randint(1, len(trip3))
-    #
-    ptrip1 = trip1[0:r1]
-    ptrip2 = trip1[0:r2]
-    ptrip3 = trip1[0:r3]
-    strip1 = trip1[r1:len(trip1)]
-    strip2 = trip1[r1:len(trip2)]
-    strip3 = trip1[r1:len(trip3)]
-    #
-    trip1 = [[0, north_pole, 10]] + ptrip2 + strip3 + [[0, north_pole, 10]]
-    trip2 = [[0, north_pole, 10]] + ptrip1 + strip2 + [[0, north_pole, 10]]
-    trip3 = [[0, north_pole, 10]] + ptrip3 + strip1 + [[0, north_pole, 10]]
-
-    return trip1[1:-1], trip2[1:-1], trip3[1:-1]
+    return bestTrip
 
 
 def pathlength(llo):
@@ -156,7 +129,7 @@ for n in [1.25252525]:
             # break
 
         print(c)
-        ou_ = open("../submissions/clusters_66_1252525.csv", "w")
+        ou_ = open("../submissions/12509884600.csv", "w")
         ou_.write("TripId,GiftId\n")
         bm = 0.0
         submission = pd.read_sql("SELECT TripId FROM gifts GROUP BY TripId ORDER BY TripId;", c)
@@ -175,54 +148,30 @@ for n in [1.25252525]:
         print(solution)
         optimizedSolutions = []
 
-        for i in range(1000):
+        for i in range(10000):
 
-            tripCounter = random.randint(3, len(submission.TripId))
+            tripCounter = random.randint(2, len(submission.TripId))
 
             if 3 < tripCounter < len(submission.TripId) - 3 and tripCounter not in optimizedSolutions:
                 print("TripCounter", tripCounter)
                 tripCounter1 = tripCounter
-                tripCounter2 = tripCounter + 1
-                tripCounter3 = tripCounter - 1
-
                 trip1 = pd.read_sql("SELECT GiftId, Latitude, Longitude, Weight FROM gifts WHERE TripId = " +
                                     str(submission.TripId[tripCounter1]) + " ORDER BY Latitude DESC, Longitude ASC;", c)
-                trip2 = pd.read_sql("SELECT GiftId, Latitude, Longitude, Weight FROM gifts WHERE TripId = " +
-                                    str(submission.TripId[tripCounter2]) + " ORDER BY Latitude DESC, Longitude ASC;", c)
-                trip3 = pd.read_sql("SELECT GiftId, Latitude, Longitude, Weight FROM gifts WHERE TripId = " +
-                                    str(submission.TripId[tripCounter3]) + " ORDER BY Latitude DESC, Longitude ASC;", c)
 
                 giftOrderTrip1 = []
-                giftOrderTrip2 = []
-                giftOrderTrip3 = []
 
                 # Put all gifts from trip in a
                 for x_ in range(len(trip1.GiftId)):
                     giftOrderTrip1.append(
                         [trip1.GiftId[x_], (trip1.Latitude[x_], trip1.Longitude[x_]), trip1.Weight[x_]])
-                for x_ in range(len(trip2.GiftId)):
-                    giftOrderTrip2.append(
-                        [trip2.GiftId[x_], (trip2.Latitude[x_], trip2.Longitude[x_]), trip2.Weight[x_]])
-                for x_ in range(len(trip3.GiftId)):
-                    giftOrderTrip3.append(
-                        [trip3.GiftId[x_], (trip3.Latitude[x_], trip3.Longitude[x_]), trip3.Weight[x_]])
-
                 # optimize a
-
-                optimizedGiftOrderTrip1, optimizedGiftOrderTrip2, optimizedGiftOrderTrip3 = optimizetrips(
-                    giftOrderTrip1, giftOrderTrip2, giftOrderTrip3)
+                l1 = pathlength(giftOrderTrip1)
+                optimizedGiftOrderTrip1 = optimizetrips(giftOrderTrip1)
                 # optimizedGiftOrder = bb_sort(giftOrder)
-
-                combinedTrip = numpy.concatenate([giftOrderTrip1, giftOrderTrip2, giftOrderTrip3])
-                pathlength(combinedTrip)
-                combinedTripOptimized = numpy.concatenate(
-                    [optimizedGiftOrderTrip1, optimizedGiftOrderTrip2, optimizedGiftOrderTrip3])
-                pathlength(combinedTripOptimized)
-
                 # Check if the new a is better or not
+                l2 = pathlength(optimizedGiftOrderTrip1)
                 # Not better
-
-                if pathlength(combinedTrip) <= pathlength(combinedTripOptimized):
+                if l1 <= l2:
                     print(submission.TripId[tripCounter1], "No Change")
                     # bm += pathlength(optimizedGiftOrderTrip1)
 
@@ -236,17 +185,9 @@ for n in [1.25252525]:
                     print(submission.TripId[tripCounter1], "Optimized")
                     # bm += pathlength(optimizedGiftOrderTrip1)
                     solution[tripCounter1] = optimizedGiftOrderTrip1
-                    solution[tripCounter2] = optimizedGiftOrderTrip2
-                    solution[tripCounter3] = optimizedGiftOrderTrip3
                     if tripCounter1 in optimizedSolutions:
                         optimizedSolutions.remove(tripCounter1)
-                    if tripCounter2 in optimizedSolutions:
-                        optimizedSolutions.remove(tripCounter2)
-                    if tripCounter3 in optimizedSolutions:
-                        optimizedSolutions.remove(tripCounter3)
-
         for tripToWrite in solution:
-
             for y_ in range(len(solution[tripToWrite])):
                 ou_.write(str(tripToWrite) + "," + str(solution[tripToWrite][y_][0]) + "\n")
 
